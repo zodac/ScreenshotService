@@ -1,0 +1,70 @@
+version: '2.1'
+
+services:
+
+  wildfly:
+    build: ./docker/wildfly
+    container_name: wildfly
+    hostname: wildfly
+    environment:
+      # Container configuration
+      JAVA_OPTS: -Xms512m -Xmx2g -Djava.net.preferIPv4Stack=true
+      # Service configuration
+      OUTPUT_DIRECTORY: "/usr/screenshot"
+      REMOTE_BROWSER_URL: "http://selenium-hub:4444/wd/hub"
+      NUMBER_OF_EXECUTOR_THREADS: 25
+      # Database configuration
+      JDBC_CONNECTION_URL: "jdbc:postgresql://postgres:5432/screenshot_db"
+      JDBC_CONNECTION_USER: "screenshot_user"
+      JDBC_CONNECTION_PASSWORD: "shroot"
+      JDBC_CONNECTION_DRIVER: "org.postgresql.Driver"
+    ports:
+      - 8080:8080
+      - 8787:8787
+      - 9990:9990
+      - 9999:9999
+    links:
+      - postgres
+      - selenium-hub
+
+  selenium-hub:
+    image: selenium/hub:3.14.0-gallium
+    container_name: selenium-hub
+    hostname: selenium-hub
+    expose:
+      - 4444
+    ports:
+      - 4444:4444
+
+  selenium-chrome:
+    image: selenium/node-chrome:3.14.0-gallium
+    hostname: selenium-chrome
+    depends_on:
+      - selenium-hub
+    environment:
+      HUB_HOST: selenium-hub
+
+  postgres:
+    build: ./docker/postgres
+    container_name: postgres
+    hostname: postgres
+    environment:
+      # First 4 variables used to configure DB
+      - POSTGRES_USER=screenshot_user
+      - POSTGRES_PASSWORD=shroot
+      - POSTGRES_DB=screenshot_db
+      - POSTGRES_PORT=5432
+      # Next 3 variables needed to avoid "FATAL role 'root' does not exist" error
+      - PGDATABASE=screenshot_db
+      - PGUSER=screenshot_user
+      - PGPASSWORD=shroot
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
+    restart: always
+    healthcheck:
+      test: pg_isready --host localhost || exit 1
+      interval: 15s
+      timeout: 10s
+      retries: 30

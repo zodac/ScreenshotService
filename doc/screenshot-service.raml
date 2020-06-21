@@ -1,0 +1,61 @@
+#%RAML 0.8
+title: Screenshot Service REST Interface
+baseUri: https://{server}/screenshot
+
+/:
+  post:
+    description: Creates a new screenshot request with a list of URLs. This is a blocking request and will return once all screenshots have been saved.
+    body:
+      application/json:
+        example:  |
+          {
+            "urls": [
+              "http://www.url1.ie",
+          	  "http://www.url2.com"
+            ]
+          }
+    responses:
+      201:
+        description: The screenshot request has been accepted and processed, with a 'location' header directing to the result
+      400:
+        description: The screenshot request has been rejected due to an invalid URL in the request
+        body:
+          application/json:
+            example:  |
+              {
+                "invalidUrls": [
+                  "invalid-url"
+                ]
+              }
+
+/{jobId}:
+  get:
+    description: Retrieves a single job ID and its screenshot file names
+    responses:
+      200:
+        description: A single job ID result
+        body:
+          application/json:
+            example:  |
+              {
+                "jobId": 1,
+                "screenshotFileNames": [
+                  "2019-37-29_01:37:28_1.png",
+                  "2019-37-29_01:37:28_2.png",
+                  "2019-37-29_01:37:28_3.png",
+                  "2019-37-29_01:37:28_4.png"
+                ]
+              }
+      404:
+        description: No job ID exists for the supplied ID
+
+/{jobId}/{screenshotFileName}:
+  get:
+    description: Retrieves a single screenshot using the file name from a previous result
+    responses:
+      200:
+        description: A single screenshot from a previous result
+        body:
+          image/png:
+      404:
+        description: No screenshot exists for the supplied ID and screenshot file name
