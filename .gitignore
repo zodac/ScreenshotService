@@ -1,0 +1,7 @@
+# IntelliJ
+*.iml
+.idea/
+
+# Build
+target/
+docker/wildfly/ear/*
