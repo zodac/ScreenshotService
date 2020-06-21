@@ -28,7 +28,7 @@ services:
       - selenium-hub
 
   selenium-hub:
-    image: selenium/hub:3.14.0-gallium
+    image: selenium/hub:3.141.59-20200525
     container_name: selenium-hub
     hostname: selenium-hub
     expose:
@@ -37,7 +37,7 @@ services:
       - 4444:4444
 
   selenium-chrome:
-    image: selenium/node-chrome:3.14.0-gallium
+    image: selenium/node-chrome:3.141.59-20200525
     hostname: selenium-chrome
     depends_on:
       - selenium-hub

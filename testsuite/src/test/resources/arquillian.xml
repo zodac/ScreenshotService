@@ -13,7 +13,7 @@
     <!-- Configuration to be used when the WildFly remote profile is active -->
     <container qualifier="wildfly" default="true">
         <configuration>
-            <property name="managementAddress">127.0.0.1</property>
+            <property name="managementAddress">192.168.99.100</property>
             <property name="managementPort">9990</property>
             <property name="username">root</property>
             <property name="password">shroot</property>

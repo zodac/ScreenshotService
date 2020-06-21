@@ -50,7 +50,7 @@ public final class ScreenshotTaker {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScreenshotTaker.class);
     private static final String REMOTE_BROWSER_URL = getEnvironmentValue("REMOTE_BROWSER_URL");
     private static final String ROOT_DIRECTORY = getEnvironmentValue("OUTPUT_DIRECTORY");
-    private static final DateTimeFormatter FILE_NAME_PREFIX_FORMATTER = DateTimeFormatter.ofPattern("yyyy-mm-dd_hh:mm:ss", Locale.UK);
+    private static final DateTimeFormatter FILE_NAME_PREFIX_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_hh:mm:ss", Locale.UK);
 
     /**
      * Executes the business logic for the service:

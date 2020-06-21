@@ -34,6 +34,7 @@ final class Deployments {
 
         return ShrinkWrap.create(EnterpriseArchive.class, "ScreenshotServiceTestEar.ear")
                 .addAsLibraries(resolveLocalJars("me.zodac", "screenshot-service-api"))
+                .addAsLibraries(resolveLocalJars("com.google.code.gson", "gson"))
                 .addAsModule(ejbJar);
     }
 

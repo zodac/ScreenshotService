@@ -8,8 +8,8 @@ The RAML description of the service's REST endpoints can be found in `doc/screen
 ## Required software
 
 - Java JDK 8
-- Apache maven v3.6.0
-- Docker For Windows v2.0.0.3 (Windows 10)
+- Apache maven v3.6.3
+- Docker Toolbox (Windows 7)
 - Postman (for REST requests)
 
 

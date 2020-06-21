@@ -31,7 +31,7 @@ import me.zodac.screenshot.api.rest.ScreenshotResult;
 @RunWith(Arquillian.class)
 public class ScreenshotServiceIT {
 
-    private static final String BASE_SCREENSHOT_SERVICE_URL = "http://127.0.0.1:8080/screenshot/";
+    private static final String BASE_SCREENSHOT_SERVICE_URL = "http://192.168.99.100:8080/screenshot/";
     private static final int NUMBER_OF_SCREENSHOTS_TO_TAKE = 10;
     private static final Gson GSON = new Gson();
 
