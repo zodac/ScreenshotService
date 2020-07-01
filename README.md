@@ -7,27 +7,22 @@ The RAML description of the service's REST endpoints can be found in `doc/screen
 
 ## Required software
 
-- Java JDK 8
-- Apache maven v3.6.3
-- Docker Toolbox (Windows 7)
-- Postman (for REST requests)
+- Docker Toolbox (Windows 7) with docker-compose 2.1
+- Postman (for manual REST requests)
 
-
-## First build the service artifacts:
-   
-    mvn clean install
     
-This will generate the **screenshot-service** EAR and move it into the *docker/wildfly/ear* directory
-    
-## Now bring the docker containers online:
+## Bring the docker containers online:
 
     docker-compose up --build --scale selenium-chrome=5
     
-This generates 4 containers:
-    
+This generates 5 containers:
+
+
+#### builder_java_8
+    A small container with maven and JDK8 installed, which takes the source code and generates the output EARs.
     
 #### wildfly
-    The Wildfly application server, which deploys any EARs contained in the *docker/wildfly/ear* directory.
+    The Wildfly application server, which deploys any EARs built in the shared volume by the 'builder_java_8' container.
     
 #### selenium-hub
     The Selenium hub that Wildfly will send requests to, that forwards to the browser-specific container.

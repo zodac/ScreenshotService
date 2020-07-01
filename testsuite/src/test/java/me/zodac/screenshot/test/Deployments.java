@@ -23,7 +23,7 @@ final class Deployments {
 
     /**
      * Creates a test EAR containing the integration test and any required JARs.
-     * 
+     *
      * @return the test EAR
      */
     static EnterpriseArchive getTestEar() {

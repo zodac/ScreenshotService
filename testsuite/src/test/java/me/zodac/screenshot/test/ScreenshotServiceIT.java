@@ -32,6 +32,7 @@ import me.zodac.screenshot.api.rest.ScreenshotResult;
 public class ScreenshotServiceIT {
 
     private static final String BASE_SCREENSHOT_SERVICE_URL = "http://192.168.99.100:8080/screenshot/";
+    private static final String TEST_URL = "http://www.google.ie";
     private static final int NUMBER_OF_SCREENSHOTS_TO_TAKE = 10;
     private static final Gson GSON = new Gson();
 
@@ -147,7 +148,7 @@ public class ScreenshotServiceIT {
     private static List<String> createUrls() {
         final List<String> urls = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_SCREENSHOTS_TO_TAKE; i++) {
-            urls.add("http://www.google.ie");
+            urls.add(TEST_URL);
         }
         return urls;
     }

@@ -15,8 +15,7 @@ public final class EnvironmentUtils {
      * <p>
      * If neither is set, then null is returned.
      *
-     * @param propertyName
-     *            the property to search for
+     * @param propertyName the property to search for
      * @return the value of the searched property, otherwise {@code null}
      */
     public static String getEnvironmentValue(final String propertyName) {

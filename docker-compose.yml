@@ -2,10 +2,21 @@ version: '2.1'
 
 services:
 
+  builder:
+    build:
+      context: .
+      dockerfile: ./docker/builder/java/8/Dockerfile
+    container_name: builder_java_8
+    hostname: builder_java_8
+    volumes:
+      - /opt/jboss/wildfly/standalone/deployments/
+
   wildfly:
     build: ./docker/wildfly
     container_name: wildfly
     hostname: wildfly
+    depends_on:
+      - builder
     environment:
       # Container configuration
       JAVA_OPTS: -Xms512m -Xmx2g -Djava.net.preferIPv4Stack=true
@@ -18,14 +29,17 @@ services:
       JDBC_CONNECTION_USER: "screenshot_user"
       JDBC_CONNECTION_PASSWORD: "shroot"
       JDBC_CONNECTION_DRIVER: "org.postgresql.Driver"
+    links:
+      - builder
+      - postgres
+      - selenium-hub
     ports:
       - 8080:8080
       - 8787:8787
       - 9990:9990
       - 9999:9999
-    links:
-      - postgres
-      - selenium-hub
+    volumes_from:
+      - builder
 
   selenium-hub:
     image: selenium/hub:3.141.59-20200525

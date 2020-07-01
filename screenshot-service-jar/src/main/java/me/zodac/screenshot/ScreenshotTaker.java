@@ -63,13 +63,11 @@ public final class ScreenshotTaker {
      * Saves the input request for screenshots for the given URLs, takes the screenshots for each input URL, then saves the result to the DB.
      * <p>
      * Screenshot attempts are best-effort. If one fails, execution continues and the successful screenshots are returned.
-     * 
-     * @param urls
-     *            the URLs to be screenshot
+     *
+     * @param urls the URLs to be screenshot
      * @return the job ID
+     * @throws ScreenshotServiceException thrown if any error occurs taking a screenshot
      * @see PostgresManager#createResult(int, List)
-     * @throws ScreenshotServiceException
-     *             thrown if any error occurs taking a screenshot
      */
     public int takeScreenshots(final List<String> urls) throws ScreenshotServiceException {
         LOGGER.info("Starting to take {} screenshots", urls.size());
@@ -97,7 +95,7 @@ public final class ScreenshotTaker {
     }
 
     private List<Future<String>> submitScreenshots(final String fileNamePrefix, final String outputDirectory,
-            final List<String> urls) {
+                                                   final List<String> urls) {
         final List<Callable<String>> screenshotCallables = new ArrayList<>(urls.size());
         int fileNameSuffix = 1;
         for (final String url : urls) {
@@ -113,7 +111,7 @@ public final class ScreenshotTaker {
     }
 
     private static Callable<String> takeScreenshot(final String url, final String fileNamePrefix, final int fileNameSuffix,
-            final String outputDirectory) {
+                                                   final String outputDirectory) {
         return () -> {
             final WebDriver webDriver = getFullSizeWebDriver();
             webDriver.get(url);

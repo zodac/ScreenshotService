@@ -9,11 +9,9 @@ public class ScreenshotServiceException extends Exception {
 
     /**
      * Constructor taking in an error message and a cause {@link Throwable}.
-     * 
-     * @param errorMessage
-     *            the error message
-     * @param cause
-     *            the cause {@link Throwable}
+     *
+     * @param errorMessage the error message
+     * @param cause        the cause {@link Throwable}
      */
     public ScreenshotServiceException(final String errorMessage, final Throwable cause) {
         super(errorMessage, cause);
