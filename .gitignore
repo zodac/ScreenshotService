@@ -4,4 +4,3 @@
 
 # Build
 target/
-docker/wildfly/ear/*

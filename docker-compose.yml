@@ -2,12 +2,12 @@ version: '2.1'
 
 services:
 
-  builder:
+  builder_java:
     build:
       context: .
-      dockerfile: ./docker/builder/java/8/Dockerfile
-    container_name: builder_java_8
-    hostname: builder_java_8
+      dockerfile: docker/builder/java/Dockerfile
+    container_name: builder_java
+    hostname: builder_java
     volumes:
       - /opt/jboss/wildfly/standalone/deployments/
 
@@ -16,7 +16,7 @@ services:
     container_name: wildfly
     hostname: wildfly
     depends_on:
-      - builder
+      - builder_java
     environment:
       # Container configuration
       JAVA_OPTS: -Xms512m -Xmx2g -Djava.net.preferIPv4Stack=true
@@ -39,7 +39,7 @@ services:
       - 9990:9990
       - 9999:9999
     volumes_from:
-      - builder
+      - builder_java
 
   selenium-hub:
     image: selenium/hub:3.141.59-20200525

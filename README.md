@@ -18,8 +18,8 @@ The RAML description of the service's REST endpoints can be found in `doc/screen
 This generates 5 containers:
 
 
-#### builder_java_8
-    A small container with maven and JDK8 installed, which takes the source code and generates the output EARs.
+#### builder_java
+    A small container with maven and JDK installed, which takes the source code and generates the output EARs.
     
 #### wildfly
     The Wildfly application server, which deploys any EARs built in the shared volume by the 'builder_java_8' container.
