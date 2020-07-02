@@ -1,4 +1,4 @@
-version: '2.1'
+version: '2.4'
 
 services:
 
@@ -30,7 +30,7 @@ services:
       JDBC_CONNECTION_PASSWORD: "shroot"
       JDBC_CONNECTION_DRIVER: "org.postgresql.Driver"
     links:
-      - builder
+      - builder_java
       - postgres
       - selenium-hub
     ports:

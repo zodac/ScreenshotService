@@ -1,10 +1,11 @@
-package me.zodac.db;
+package me.zodac.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
 
+import me.zodac.util.PostgresSqlQueryBuilder;
 import org.junit.Test;
 
 /**

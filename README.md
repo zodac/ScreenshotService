@@ -7,7 +7,7 @@ The RAML description of the service's REST endpoints can be found in `doc/screen
 
 ## Required software
 
-- Docker Toolbox (Windows 7) with docker-compose 2.1
+- Docker Toolbox with docker-compose (docker engine 17.12.0+)
 - Postman (for manual REST requests)
 
     
@@ -19,10 +19,10 @@ This generates 5 containers:
 
 
 #### builder_java
-    A small container with maven and JDK installed, which takes the source code and generates the output EARs.
+    A small container with maven and JDK 11 installed, which takes the source code and generates the output EARs.
     
 #### wildfly
-    The Wildfly application server, which deploys any EARs built in the shared volume by the 'builder_java_8' container.
+    The Wildfly application server, which deploys any EARs built in the shared volume by the 'builder_java' container.
     
 #### selenium-hub
     The Selenium hub that Wildfly will send requests to, that forwards to the browser-specific container.
