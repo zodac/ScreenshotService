@@ -1,4 +1,4 @@
-package me.zodac.util;
+package me.zodac.db.util;
 
 import static java.util.stream.Collectors.joining;
 

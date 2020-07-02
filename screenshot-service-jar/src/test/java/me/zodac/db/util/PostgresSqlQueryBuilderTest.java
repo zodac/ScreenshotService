@@ -1,11 +1,10 @@
-package me.zodac.util;
+package me.zodac.db.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
 
-import me.zodac.util.PostgresSqlQueryBuilder;
 import org.junit.Test;
 
 /**
@@ -15,7 +14,7 @@ public class PostgresSqlQueryBuilderTest {
 
     @Test
     public void whenCreateInsertStatementForRequest_givenUsernameAndTwoUrls_thenSqlStatementIsCreatedWithAnArrayOfTwoUrls() {
-        final List<String> urls = Arrays.asList("http://websiteOne.com", "http://websiteTwo.com");
+        final List<String> urls = List.of("http://websiteOne.com", "http://websiteTwo.com");
 
         final String result = PostgresSqlQueryBuilder.insertRequest(urls);
 
@@ -28,7 +27,7 @@ public class PostgresSqlQueryBuilderTest {
     @Test
     public void whenCreateInsertStatementForResult_givenJobIdAndTwoFilePaths_thenSqlStatementIsCreatedWithAnArrayOfTwoFilePaths() {
         final int jobId = 1;
-        final List<String> filePaths = Arrays.asList("/usr/screenshot/1/screenshot1.png", "/usr/screenshot/1/screenshot2.png");
+        final List<String> filePaths = List.of("/usr/screenshot/1/screenshot1.png", "/usr/screenshot/1/screenshot2.png");
 
         final String result = PostgresSqlQueryBuilder.insertResult(jobId, filePaths);
 

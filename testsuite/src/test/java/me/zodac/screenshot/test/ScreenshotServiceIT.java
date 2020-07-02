@@ -2,16 +2,18 @@ package me.zodac.screenshot.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.apache.http.HttpStatus;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
@@ -35,6 +37,10 @@ public class ScreenshotServiceIT {
     private static final String TEST_URL = "http://www.google.ie";
     private static final int NUMBER_OF_SCREENSHOTS_TO_TAKE = 10;
     private static final Gson GSON = new Gson();
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     @Deployment(order = 1)
     public static EnterpriseArchive getTestEar() {
@@ -44,113 +50,125 @@ public class ScreenshotServiceIT {
     @InSequence(1)
     @RunAsClient
     @Test(timeout = 180_000L)
-    public void verifyScreenshotService() {
+    public void verifyScreenshotService() throws IOException, InterruptedException {
         // Send request to service
         final List<String> urls = createUrls();
 
-        final ScreenshotRequest request = new ScreenshotRequest(urls);
-        final String payload = GSON.toJson(request);
+        final String payload = GSON.toJson(new ScreenshotRequest(urls));
 
-        final Response requestResponse = ClientBuilder.newClient()
-                .target(BASE_SCREENSHOT_SERVICE_URL)
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(payload));
+        final HttpRequest createRequest = HttpRequest.newBuilder()
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .uri(URI.create(BASE_SCREENSHOT_SERVICE_URL))
+                .header("Content-Type", "application/json")
+                .build();
 
-        assertThat(requestResponse.getStatus())
+        final HttpResponse<String> response = HTTP_CLIENT.send(createRequest, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode())
                 .as("Did not receive a 201_CREATED HTTP response")
-                .isEqualTo(HttpStatus.SC_CREATED);
+                .isEqualTo(HttpURLConnection.HTTP_CREATED);
 
-        final String requestUrl = String.valueOf(requestResponse.getHeaders().getFirst("location"));
+        final String requestUrl = response.headers().firstValue("location").orElse("No 'location' header");
         assertThat(requestUrl)
                 .as("Location header did not contain the URL for the created screenshot request")
                 .startsWith(BASE_SCREENSHOT_SERVICE_URL);
 
         // Retrieve result
-        final Response resultResponse = ClientBuilder.newClient()
-                .target(requestUrl)
-                .request(MediaType.APPLICATION_JSON)
-                .get();
+        final HttpRequest resultRequest = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(requestUrl))
+                .header("Content-Type", "application/json")
+                .build();
 
-        assertThat(resultResponse.getStatus())
+        final HttpResponse<String> resultResponse = HTTP_CLIENT.send(resultRequest, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(resultResponse.statusCode())
                 .as("Did not receive a 200_OK HTTP response for: " + requestUrl)
-                .isEqualTo(HttpStatus.SC_OK);
+                .isEqualTo(HttpURLConnection.HTTP_OK);
 
-        final ScreenshotResult screenshotResult = GSON.fromJson(resultResponse.readEntity(String.class), ScreenshotResult.class);
+
+        final ScreenshotResult screenshotResult = GSON.fromJson(resultResponse.body(), ScreenshotResult.class);
         assertThat(screenshotResult.getScreenshotFileNames())
                 .as("Screenshot response did not have the correct number of file names")
                 .hasSize(NUMBER_OF_SCREENSHOTS_TO_TAKE);
 
         // Retrieve single screenshot
         final String firstScreenshotFileName = screenshotResult.getScreenshotFileNames().get(0);
-        final Response singleScreenshotResponse = ClientBuilder.newClient()
-                .target(requestUrl + "/" + firstScreenshotFileName)
-                .request("image/png")
-                .get();
+        final HttpRequest singleScreenshotRequest = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(requestUrl + "/" + firstScreenshotFileName))
+                .build();
+        final HttpResponse<String> singleScreenshotResponse = HTTP_CLIENT.send(singleScreenshotRequest, HttpResponse.BodyHandlers.ofString());
 
-        assertThat(singleScreenshotResponse.getStatus())
+        assertThat(singleScreenshotResponse.statusCode())
                 .as("Did not receive a 200_OK HTTP response for: " + requestUrl + "/" + firstScreenshotFileName)
-                .isEqualTo(HttpStatus.SC_OK);
+                .isEqualTo(HttpURLConnection.HTTP_OK);
     }
 
     @InSequence(2)
     @RunAsClient
     @Test
-    public void whenSendingRequestWithInvalidUrls_then400ResponseIsReturned() {
+    public void whenSendingRequestWithInvalidUrls_then400ResponseIsReturned() throws IOException, InterruptedException {
         final List<String> urls = createInvalidUrls();
+        final String payload = GSON.toJson(new ScreenshotRequest(urls));
 
-        final ScreenshotRequest request = new ScreenshotRequest(urls);
-        final String payload = GSON.toJson(request);
+        final HttpRequest request = HttpRequest.newBuilder()
+                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                .uri(URI.create(BASE_SCREENSHOT_SERVICE_URL))
+                .header("Content-Type", "application/json")
+                .build();
 
-        final Response requestResponse = ClientBuilder.newClient()
-                .target(BASE_SCREENSHOT_SERVICE_URL)
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.json(payload));
+        final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertThat(requestResponse.getStatus())
+        assertThat(response.statusCode())
                 .as("Did not receive a 400_BAD_REQUEST HTTP response")
-                .isEqualTo(HttpStatus.SC_BAD_REQUEST);
+                .isEqualTo(HttpURLConnection.HTTP_BAD_REQUEST);
     }
 
     @InSequence(3)
     @RunAsClient
     @Test
-    public void whenGettingRequestByJobId_givenInvalidJobId_then404ResponseIsReturned() {
+    public void whenGettingRequestByJobId_givenInvalidJobId_then404ResponseIsReturned() throws IOException, InterruptedException {
         final int invalidJobId = -1;
         final String requestUrl = BASE_SCREENSHOT_SERVICE_URL + invalidJobId;
 
-        final Response resultResponse = ClientBuilder.newClient()
-                .target(requestUrl)
-                .request(MediaType.APPLICATION_JSON)
-                .get();
+        final HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(requestUrl))
+                .header("Content-Type", "application/json")
+                .build();
 
-        assertThat(resultResponse.getStatus())
+        final HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode())
                 .as("Did not receive a 404_NOT_FOUND HTTP response for: " + requestUrl)
-                .isEqualTo(HttpStatus.SC_NOT_FOUND);
+                .isEqualTo(HttpURLConnection.HTTP_NOT_FOUND);
     }
 
     @InSequence(4)
     @RunAsClient
     @Test
-    public void whenGettingRequestByScreenshotFileName_givenInvalidScreenshotFileName_then404ResponseIsReturned() {
+    public void whenGettingRequestByScreenshotFileName_givenInvalidScreenshotFileName_then404ResponseIsReturned() throws IOException, InterruptedException {
         final String invalidScreenshotFileName = "invalidScreenshot.png";
         final String requestUrl = BASE_SCREENSHOT_SERVICE_URL + "/1/" + invalidScreenshotFileName;
 
-        final Response singleScreenshotResponse = ClientBuilder.newClient()
-                .target(requestUrl)
-                .request("image/png")
-                .get();
+        final HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(requestUrl))
+                .header("Content-Type", "image/png")
+                .build();
 
-        assertThat(singleScreenshotResponse.getStatus())
+        final HttpResponse<byte[]> singleScreenshotResponse = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+        assertThat(singleScreenshotResponse.statusCode())
                 .as("Did not receive a 404_NOT_FOUND HTTP response for: " + requestUrl)
-                .isEqualTo(HttpStatus.SC_NOT_FOUND);
+                .isEqualTo(HttpURLConnection.HTTP_NOT_FOUND);
     }
 
     private static List<String> createUrls() {
-        final List<String> urls = new ArrayList<>();
-        for (int i = 0; i < NUMBER_OF_SCREENSHOTS_TO_TAKE; i++) {
-            urls.add(TEST_URL);
-        }
-        return urls;
+        return IntStream.range(0, NUMBER_OF_SCREENSHOTS_TO_TAKE)
+                .mapToObj(i -> TEST_URL)
+                .collect(Collectors.toList());
     }
 
     private static List<String> createInvalidUrls() {

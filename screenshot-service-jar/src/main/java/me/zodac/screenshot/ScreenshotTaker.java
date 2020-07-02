@@ -8,16 +8,14 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.Dimension;
@@ -77,7 +75,7 @@ public final class ScreenshotTaker {
         final String outputDirectory = ROOT_DIRECTORY + File.separator + jobId + File.separator;
         final String fileNamePrefix = FILE_NAME_PREFIX_FORMATTER.format(LocalDateTime.now());
 
-        final List<Future<String>> screenshotFutures = submitScreenshots(fileNamePrefix, outputDirectory, urls);
+        final var screenshotFutures = submitScreenshots(fileNamePrefix, outputDirectory, urls);
         final List<String> screenshotFilePaths = retrieveScreenshotFilePaths(screenshotFutures);
 
         saveResults(jobId, screenshotFilePaths);
@@ -136,20 +134,22 @@ public final class ScreenshotTaker {
     }
 
     private List<String> retrieveScreenshotFilePaths(final List<Future<String>> screenshotFutures) {
-        final List<String> screenshotFilePaths = new ArrayList<>(screenshotFutures.size());
-
-        for (final Future<String> screenshotFuture : screenshotFutures) {
-            try {
-                screenshotFilePaths.add(screenshotFuture.get());
-            } catch (final InterruptedException | ExecutionException e) {
-                LOGGER.warn("Error retrieving future: {}", screenshotFuture, e);
-            }
-        }
-
-        return screenshotFilePaths;
+        return screenshotFutures.stream()
+                .map(ScreenshotTaker::extractFuture)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
-    private void saveResults(final int jobId, final List<String> screenshotFilePaths) throws ScreenshotServiceException {
+    private static String extractFuture(Future<String> screenshotFuture) {
+        try {
+            return screenshotFuture.get();
+        } catch (final InterruptedException | ExecutionException e) {
+            LOGGER.warn("Error retrieving future: {}", screenshotFuture, e);
+            return null;
+        }
+    }
+
+    private static void saveResults(final int jobId, final List<String> screenshotFilePaths) throws ScreenshotServiceException {
         try {
             PostgresManager.createResult(jobId, screenshotFilePaths);
         } catch (final SQLException e) {
