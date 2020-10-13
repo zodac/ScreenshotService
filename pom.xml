@@ -32,7 +32,7 @@
 
         <!-- Test 3PP Versions -->
         <assertj-core.version>3.16.1</assertj-core.version>
-        <junit.version>4.13</junit.version>
+        <junit.version>4.13.1</junit.version>
 
         <!-- Plugin Versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
